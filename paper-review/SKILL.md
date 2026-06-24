@@ -1,149 +1,155 @@
 ---
 name: paper-review
-description: Review scientific and technical manuscripts, especially LaTeX drafts, for mathematical errors, scientific inconsistencies, unsupported claims, implementation ambiguity, factual problems, and important writing issues. Use when the user asks to proofread a paper, review a manuscript, check equations or derivations, audit appendix formulas or notation, flag typos or grammar issues, or generate or update a LaTeX review file with concrete fixes.
+description: Use when reviewing, proofreading, or auditing scientific and technical manuscripts in Markdown, DOCX, PDF, LaTeX, or plain text; checking research questions, argument logic, variables, methods, equations, evidence, figures, tables, appendices, citations, unsupported claims, writing clarity, or producing a structured manuscript review.
 ---
 
 # Paper Review
 
 ## Overview
 
-Produce one concrete, compileable LaTeX review file. Prioritize scientific and technical correctness over prose polish, then add bounded editorial findings that materially improve clarity or professionalism.
+Produce a concrete, evidence-focused manuscript review. Default to a Markdown review report unless the user requests LaTeX, DOCX-ready prose, inline edits, Chinese, English, or another output format.
+
+Prioritize research quality and internal consistency over surface-level polishing.
 
 ## Default Behavior
 
-1. Read the full manuscript before writing findings.
-2. Use extra thinking by default, but do not narrate the reasoning process.
-3. Write a standalone LaTeX review to `paper-reviews/review-YYYY-MM-DD-HHMMSS.tex`, unless the user gives a different path.
-4. Match the user's requested output language; otherwise use the user's language when clear.
-5. Preserve equations, symbols, citation keys, and quoted manuscript snippets exactly when needed for technical accuracy.
-6. Do not require a fixed review template or section layout unless the user asks for one.
-7. Create a new timestamped review file by default. Only update an existing review file if the user explicitly asks.
-8. Compiling to PDF is optional unless the user asks for it or compilation is needed to validate the LaTeX.
+1. Read the full manuscript or all provided manuscript material before writing findings.
+2. Preserve equations, symbols, citation keys, table/figure labels, and quoted snippets exactly when needed for accuracy.
+3. Match the user's requested language; otherwise use the user's language when clear.
+4. Create a new timestamped review file at `paper-reviews/review-YYYY-MM-DD-HHMMSS.md` when writing to disk, unless the user gives another path.
+5. Do not modify the manuscript unless the user explicitly requests edits or a revision pass.
+6. Do not require a fixed review template. Use the structure that best exposes actionable issues.
+7. If the manuscript is incomplete, review what is available and state which checks are limited by missing files.
 
-## Review Priority
+## Input Handling
 
-Spend attention in this order:
+Support Markdown, DOCX, PDF, LaTeX source, and plain text.
 
-1. equations, derivations, notation, units, definitions, algorithms, and implementation-facing formulas
-2. consistency between claims, evidence, figures, tables, captions, appendices, and conclusions
-3. editorial quality, especially high-confidence issues that are cheap to verify and fix
+- **Markdown or plain text:** review structure, claims, citations, tables, formulas, and prose directly.
+- **DOCX:** extract or inspect content with available document tools; preserve section/table context in findings.
+- **PDF:** review visible content; note that source-level comments, hidden metadata, and some cross-reference checks may be limited.
+- **LaTeX:** inspect source when available; for LaTeX-specific source, macro, cross-reference, and compileability concerns, prefer `$latex-paper-review` when installed.
+- **Multi-file projects:** inspect the main file plus included chapters, bibliography, appendices, tables, figures/captions, and supporting notes when available.
 
-Do not let editorial findings crowd out technical findings. Treat `proofread`, `flag typos`, `grammar`, `writing quality`, and similar wording as a request to spend more budget on the editorial sweep after the technical audit.
+## Manuscript Understanding Model
 
-## Workflow
+Before judging individual issues, build a short internal map of:
 
-1. Read the manuscript to understand the main claims, evidence, equations, appendices, and structure.
-2. Identify the highest-risk technical content: key equations, symbol definitions, quantitative claims, coordinate transformations, appendix formulas, and implementation-facing expressions.
-3. Perform the technical audit first.
-4. Re-check the highest-risk technical findings before presenting them.
-5. Perform a bounded editorial pass after the technical audit.
-6. Run `scripts/proofing_scan.py` when code execution is available; otherwise do the manual pattern scan in `Final Proofing Sweep`.
-7. Spot-check proofing-scan candidates before presenting them as issues.
-8. Write the review file.
+- field or domain
+- research question and intended contribution
+- core concepts, variables, constructs, or symbols
+- relationships between variables or claims
+- research method, model, experiment, proof strategy, or review framework
+- data, material, corpus, assumptions, or evidence base
+- main results and conclusion boundaries
 
-For long papers, inspect sections in chunks when helpful, but do not force a ritual that does not improve the review.
+Use this map to test whether the paper's claims, method, evidence, and wording align. Do not output the map unless it helps the review.
 
-## Technical Audit
+## Review Workflow
+
+1. Identify manuscript type: empirical, theoretical/mathematical, systems/technical, review/conceptual, or mixed.
+2. Build the manuscript understanding model.
+3. Audit the highest-risk content first: research question, method, variables/symbols, evidence, results, equations, figures/tables, appendices, and citations.
+4. Re-check the highest-risk findings before presenting them.
+5. Run `scripts/proofing_scan.py` when code execution is available and the input is PDF or text-like; otherwise do the manual proofing scan below.
+6. Perform a bounded editorial pass after the technical and evidence audit.
+7. Write the review report with technical and factual issues before prose issues unless the user asks for prose-first review.
+
+## Review Lenses
+
+Use these lenses as applicable:
+
+- **Structure:** title, abstract, introduction, related work, method, results, discussion, conclusion, and appendices form a coherent path.
+- **Evidence:** claims are supported by data, figures, tables, experiments, citations, derivations, or stated assumptions.
+- **Method:** study design, variables, model, experiment, proof, or review method can answer the research question.
+- **Expression:** terms, paragraphs, figures, tables, references, and formatting support reader comprehension.
+- **Risk:** overclaiming, causal overreach, missing caveats, sample limits, external validity, unsupported novelty, or ambiguity.
+
+## Manuscript-Type Checks
+
+For empirical papers, check variable definitions, measurement, model specification, table interpretation, robustness checks, causal language, and conclusion boundaries.
+
+For theoretical or mathematical papers, check definitions, assumptions, notation, theorem/proposition statements, proof steps, dimensions, signs, branches, and symbol drift.
+
+For systems or technical papers, check task framing, baseline fairness, evaluation metrics, implementation ambiguity, reproducibility, ablations, and claim-to-result alignment.
+
+For review or conceptual papers, check taxonomy logic, concept boundaries, source representativeness, citation support, and whether synthesis goes beyond summary.
+
+## Technical And Evidence Audit
 
 Always check for:
 
 - unsupported or overstated claims
-- conclusions that do not follow from the reported results
-- inconsistency between text, equations, figures, tables, captions, and appendices
-- undefined symbols or symbols used before definition
-- notation drift between sections or between main text and appendix
-- unit errors or dimensional inconsistencies
-- arithmetic or quantitative inconsistencies
+- conclusions that do not follow from reported results
+- inconsistency between text, equations, figures, tables, captions, appendices, and conclusions
+- undefined variables, constructs, terms, symbols, or abbreviations
+- notation or terminology drift
+- unit, dimensional, arithmetic, or quantitative inconsistencies
 - sign errors, missing factors, normalization ambiguity, or missing case distinctions
 - inverse-trig, branch, or quadrant ambiguity, such as `arctan(x/y)` where `atan2` or an explicit branch convention may be needed
-- coordinate-system ambiguity, including misuse of initial, final, source, observer, local, global, polar, or azimuthal
-- mismatch between mathematical definitions and appendix or code-facing formulas
-- missing assumptions, qualifiers, or uncertainty that materially affect interpretation
-- factual statements that appear unsupported or likely incorrect
+- mismatch between definitions, formulas, appendix material, and implementation-facing expressions
+- missing assumptions, qualifiers, limitations, or uncertainty that materially affect interpretation
+- citation/reference mismatch or citation used to support a claim it does not actually establish
 
-### Notation And Terminology Drift
+Label findings clearly as **definite error**, **unsupported claim**, **likely issue**, or **needs external verification**. Do not present verification-needed items as definite errors.
 
-For frequently used symbols, especially subscripted or superscripted angles, radii, and frame labels, record:
+## External Research Policy
 
-- where the symbol is first defined
-- the verbal descriptor attached to it
-- later descriptor variants and whether they conflict
+Do not perform external web or literature searches by default.
 
-Flag conflicts where the same symbol is described with inconsistent role or temporal adjectives, such as initial/final, source/observer, or emission/reception.
+Suggest or request user authorization before external research when:
 
-### Confidence Labels
+- a finding depends on field background, classic theory, method norms, or factual claims outside the manuscript
+- the user asks for review against authoritative sources, literature, or domain standards
+- citation accuracy or source relevance cannot be judged from provided materials
 
-Label technical judgments clearly:
+When authorized:
 
-- **Definite error:** contradicted by the manuscript itself or by straightforward math, logic, or internal evidence.
-- **Unsupported claim:** stated more strongly than the manuscript supports.
-- **Likely issue:** plausibly wrong or misleading, but not fully provable from the manuscript alone.
-- **Needs external verification:** depends on outside literature or facts not established in the manuscript.
-
-Do not present verification-needed items as definite errors.
-
-## Coverage Requirement
-
-If the manuscript contains equations, derivations, appendices, or implementation formulas, inspect them explicitly. Do not finish the review without checking branch conventions, sign conventions, symbol definitions, dimensional consistency, and implementation ambiguity.
-
-If no concrete technical issues are found, say explicitly in the review file that these checks were performed and no concrete issues were identified.
+- prefer the manuscript's cited sources, official institutions, textbooks/handbooks, top journals/conferences, authoritative reviews, and methods papers
+- do not treat blogs, marketing pages, forums, or unsourced summaries as strong evidence
+- cite source links in the review
+- use external evidence to strengthen judgment or mark items for verification, not to overstate certainty
+- for unpublished or sensitive manuscripts, search with minimal keywords or bibliographic metadata rather than uploading full text
 
 ## Editorial Review
 
-Include meaningful editorial issues that affect meaning, create technical ambiguity, or noticeably reduce professionalism.
+Editorial review is secondary. Include issues that affect meaning, technical clarity, or professionalism:
 
-Look for:
+- ambiguous phrasing that changes interpretation
+- inconsistent terminology
+- weak transitions that obscure argument logic
+- unclear figure/table descriptions
+- malformed equation-adjacent prose
+- broken references, duplicated punctuation, malformed titles, or obvious citation-format glitches
+- high-confidence grammar, spelling, or capitalization issues
 
-- typos, spelling, grammar, and punctuation issues
-- awkward, vague, or ambiguous phrasing
-- sentences that obscure a technical point
-- broken references or citation mismatches
-- inconsistent terminology or notation
-- malformed derivation or equation-adjacent prose
-- duplicated punctuation, malformed quoted titles, inconsistent capitalization, and obvious citation-format glitches in references
-- capitalization or styling mistakes in proper names, product names, languages, or branded terms
-
-Do not spend space on subjective line editing or style preferences. Include only a bounded number of minor proofing items unless the user explicitly asks for exhaustive proofreading.
+Avoid subjective line editing unless the user requests exhaustive proofreading.
 
 ## Final Proofing Sweep
 
-Run:
+Run when useful:
 
 ```bash
 python3 scripts/proofing_scan.py <path-to-pdf-or-text> --max-hits 80
 ```
 
-Use hits as candidates, then spot-check each before including it. If code execution is unavailable, manually scan for:
+Use hits as candidates and spot-check before including them.
 
-- duplicated punctuation and spacing artifacts: `, ,`, `,,`, `..`, `" , ,`, `" ,`
-- semicolon capitalization anomalies: `;` followed by a capital letter where the second clause is not a new sentence or proper noun
-- malformed equation-adjacent grammar frames: `into ... into ...`, `with ... into ...`, `plugging ... into together ...`
-- programming or product-name capitalization: JavaScript, iOS, iPhone
-- quadrant or branch ambiguity patterns, especially `arctan(x/y)` expressions
-
-Before finishing, check bibliography/reference hygiene and dense derivation prose near equations.
+If code execution is unavailable, manually scan for duplicated punctuation, malformed equation-adjacent prose, product/language capitalization, citation-format glitches, and branch/quad ambiguity patterns such as `arctan(x/y)`.
 
 ## Output Contract
 
-Write LaTeX only in the review file. Use minimal standalone scaffolding that can compile.
+Default Markdown report should include:
 
-Cover:
-
-- overall assessment of manuscript quality
-- most important technical findings
+- concise overall assessment
+- most important technical, methodological, or evidence findings
 - meaningful editorial findings
-- a short proofing-sweep subsection when there are obvious high-confidence copyediting defects worth fixing
+- proofing-sweep items when present
 - highest-priority fixes
-- items that need external verification
+- items needing external verification
 
-For each technical finding, include location, problem, why it matters, and suggested fix.
+For each substantive finding, include location, problem, why it matters, and suggested fix.
 
-For each editorial finding, include location, problem, why it matters, suggested fix, and an optional candidate rewrite.
-
-For proofing-sweep items, a compact bullet list is acceptable if each bullet includes location, problem, and suggested fix.
-
-Put technical and factual issues before prose issues unless the user explicitly asks for a prose-first review.
-
-## Useful Reference
+If no concrete technical or evidence issues are found, say which checks were performed and that no concrete issue was identified.
 
 Read `references/review-rubric.md` when a broader checklist would help, especially for long manuscripts or revisions after local edits.

@@ -1,0 +1,4 @@
+interface:
+  display_name: "LaTeX Paper Review"
+  short_description: "Audit LaTeX manuscripts for concrete issues"
+  default_prompt: "Use $latex-paper-review to review this LaTeX manuscript and write a concise LaTeX review file."
