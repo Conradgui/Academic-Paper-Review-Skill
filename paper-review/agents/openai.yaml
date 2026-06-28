@@ -1,4 +1,4 @@
 interface:
   display_name: "Paper Review"
-  short_description: "Evidence-focused manuscript review with ranked findings"
-  default_prompt: "Use $paper-review to audit this manuscript. Do not edit the manuscript. Read all available manuscript files, prioritize evidence/method/claim alignment, run the proofing scan if possible, and write a timestamped Markdown review report."
+  short_description: "Review manuscript science and text quality"
+  default_prompt: "Use $paper-review to audit this manuscript's scientific validity and text quality without editing the source, then write a timestamped Markdown review report."

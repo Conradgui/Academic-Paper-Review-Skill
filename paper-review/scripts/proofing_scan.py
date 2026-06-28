@@ -114,6 +114,33 @@ def main() -> None:
         ("ZH_OVERCLAIM_STABILITY", re.compile(r"完全支持|高度稳健|稳定提升")),
         ("ZH_OVERCLAIM_SCOPE", re.compile(r"全面提升|整体优化|显著改善所有")),
         ("ZH_MIXED_EVIDENCE_LANGUAGE", re.compile(r"显著正相关.{0,120}边界证据|边界证据.{0,120}显著正相关")),
+        (
+            "CHATBOT_LEAK_EN",
+            re.compile(
+                r"\bI hope this helps\b|\bLet me know if\b|\bWould you like me to\b",
+                re.IGNORECASE,
+            ),
+        ),
+        (
+            "CHATBOT_LEAK_ZH",
+            re.compile(r"希望这对(?:你|您)有帮助|请告诉我是否需要|是否需要我继续|如果(?:你|您)需要我"),
+        ),
+        (
+            "UNFILLED_PLACEHOLDER",
+            re.compile(
+                r"\[(?:INSERT|ADD|TODO|TBD|Your\s+(?:Name|Topic)|待补充|请填写)[^\]\n]{0,100}\]"
+                r"|\b20\d{2}-XX-XX\b",
+                re.IGNORECASE,
+            ),
+        ),
+        (
+            "AI_CITATION_MARKUP",
+            re.compile(
+                r"\bciteturn\d+(?:search|view|fetch)\d+\b|contentReference\[oaicite:[^\]]+\]"
+                r"|\boai_citation\b|\[attached_file:\d+\]|\bgrok_card\b",
+                re.IGNORECASE,
+            ),
+        ),
     ]
 
     remaining = args.max_hits

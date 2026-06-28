@@ -25,16 +25,16 @@ Use this reference when a manuscript makes causal, significance, robustness, nov
 When overclaiming is a substantive finding, include:
 
 ```markdown
-| Claim | Evidence | Recommended Wording |
-|---|---|---|
+| Claim | Evidence | Calibrated Level | Minimal Phrase Options |
+|---|---|---|---|
 ```
 
-The recommended wording should be directly usable in the manuscript.
+In review mode, identify the target evidence level and provide only short phrase or verb options. Do not draft a paste-ready replacement sentence or paragraph. Generate complete prose only when the user explicitly requests authorial polishing for that finding or location.
 
-## Common Rewrite Patterns
+## Minimal Calibration Patterns
 
-- "X proves Y" -> "X provides evidence consistent with Y"
-- "X causes Y" -> "X is associated with Y" unless causal identification is credible
-- "The results fully support H1" -> "The main results provide partial support for H1"
-- "The effect is robust" -> "The effect remains directionally consistent in the reported checks, but the evidence is sensitive to..."
-- "This mechanism is confirmed" -> "The mechanism test offers suggestive evidence..."
+- `proves` -> `provides evidence consistent with`
+- `causes` -> `is associated with` unless causal identification is credible
+- `fully supports` -> `provides partial support for`
+- `is robust` -> `remains directionally consistent in the reported checks`
+- `mechanism is confirmed` -> `mechanism test offers suggestive evidence`

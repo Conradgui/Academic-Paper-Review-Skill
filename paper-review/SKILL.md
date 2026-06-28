@@ -1,15 +1,18 @@
 ---
 name: paper-review
-description: Use when reviewing, proofreading, or auditing scientific and technical manuscripts in Markdown, DOCX, PDF, LaTeX, or plain text; checking research questions, argument logic, variables, methods, equations, evidence, figures, tables, appendices, citations, unsupported claims, writing clarity, or producing a structured manuscript review.
+description: Use when reviewing, proofreading, auditing, or authorially polishing scientific and technical manuscripts in Markdown, DOCX, PDF, LaTeX, or plain text; checking research questions, argument logic, variables, methods, equations, evidence, figures, tables, appendices, citations, unsupported claims, text clarity, terminology, style consistency, or producing a structured manuscript review or protected revision.
 ---
 
 # Paper Review
 
 ## Overview
 
-Produce a concrete, evidence-focused manuscript review. Default to a Markdown review report unless the user requests LaTeX, DOCX-ready prose, inline edits, Chinese, English, or another output format.
+Produce a concrete manuscript review across two parallel quality tracks:
 
-Prioritize research quality and internal consistency over surface-level polishing.
+1. **Scientific Review:** research questions, methods, evidence, variables, equations, figures/tables, citations, and conclusion boundaries.
+2. **Text Quality Review:** clarity, terminology, redundancy, paragraph flow, register, and authorial-style consistency.
+
+Default to a Markdown review report unless the user requests another output format. Scientific validity remains the first priority; text-quality review must not weaken or replace it.
 
 ## Default Behavior
 
@@ -20,6 +23,8 @@ Prioritize research quality and internal consistency over surface-level polishin
 5. Do not modify the manuscript unless the user explicitly requests edits or a revision pass.
 6. Do not require a fixed review template. Use the structure that best exposes actionable issues.
 7. If the manuscript is incomplete, review what is available and state which checks are limited by missing files.
+8. Run both review tracks by default. Keep the text-quality result concise unless material problems or an explicit request trigger detailed reporting.
+9. Do not infer authorship or output an AI probability.
 
 ## Input Handling
 
@@ -27,7 +32,7 @@ Support Markdown, DOCX, PDF, LaTeX source, and plain text.
 
 - **Markdown or plain text:** review structure, claims, citations, tables, formulas, and prose directly.
 - **DOCX:** extract or inspect content with available document tools; preserve section/table context in findings.
-- **PDF:** review visible content; note that source-level comments, hidden metadata, and some cross-reference checks may be limited.
+- **PDF:** review visible content; note that source-level comments, hidden metadata, and some cross-reference checks may be limited. Do not perform full-manuscript polishing from PDF alone.
 - **LaTeX:** inspect source when available; for LaTeX-specific source, macro, cross-reference, and compileability concerns, prefer `$latex-paper-review` when installed.
 - **Multi-file projects:** inspect the main file plus included chapters, bibliography, appendices, tables, figures/captions, and supporting notes when available.
 
@@ -41,6 +46,15 @@ Before formulating any review findings, build a structured internal map covering
 - **Method Fit Assessment**: Evaluate whether the selected research design or method logically answers the research questions, whether the generated evidence supports the stated claims, and whether conclusion boundaries match the evidence.
 
 Use this map to test whether the paper's claims, method, evidence, and wording align. Do not output this model in the final report unless it directly exposes an issue.
+
+## Dual-Track Review Protocol
+
+Apply both tracks during every review, including recheck mode unless the user explicitly narrows the scope:
+
+- **Scientific Review:** apply the Core Manuscript Audit Protocol and all relevant manuscript-type enhancement modules.
+- **Text Quality Review:** read `references/text-quality-audit.md` and run its lightweight audit after the scientific review. Load the Chinese and/or English reference only when its routing rules require it.
+
+Keep the tracks distinct. A vague causal claim belongs in Scientific Review even if the sentence is also awkward. A sustained register shift or redundant paragraph belongs in Text Quality Review unless it changes scientific meaning.
 
 ## Core Manuscript Audit Protocol
 
@@ -72,10 +86,11 @@ Interpret "variables" broadly:
 5. If the manuscript has empirical-research features, read `references/empirical-paper-audit.md` and apply it as an enhancement module, not as a replacement for the core audit.
 6. Read `references/claim-strength-calibration.md` when the manuscript contains causal, significance, robustness, novelty, policy, or contribution claims whose wording may be stronger than the evidence.
 7. Audit the highest-risk content first: research question, method, variables/symbols, evidence, results, equations, figures/tables, appendices, and citations.
-8. Re-check the findings and classify them by severity and certainty before presenting.
-9. Run `scripts/proofing_scan.py` when code execution is available and the input is PDF, DOCX, Markdown, or text-like; otherwise do the manual proofing scan below.
-10. Perform a bounded editorial pass after the technical and evidence audit.
-11. Write the review report with findings structured by severity, prioritizing technical/factual issues.
+8. Re-check the scientific findings and classify them by severity and certainty.
+9. Read `references/text-quality-audit.md`, run the lightweight text-quality track, and conditionally load `references/text-quality-zh.md` and/or `references/text-quality-en.md`.
+10. Run `scripts/proofing_scan.py` when code execution is available and the input is PDF, DOCX, Markdown, or text-like; otherwise do the manual proofing scan below.
+11. Spot-check all script and style candidates in context before reporting them.
+12. Write the review report with scientific findings prioritized and a separate text-quality section.
 
 ## Recheck / Delta Review
 
@@ -84,7 +99,7 @@ Use this mode when the user asks to recheck, review a revised draft, compare aga
 In recheck mode:
 
 1. Read the prior review and the current manuscript materials.
-2. Map prior findings to their current manuscript locations, accounting for section or wording changes.
+2. Preserve prior finding IDs when available and map findings to their current manuscript locations, accounting for section or wording changes.
 3. Classify each prior finding as:
    - **Resolved:** the issue is fixed.
    - **Still Open:** the issue remains materially unchanged.
@@ -98,8 +113,8 @@ In recheck mode:
 Use a compact status matrix when helpful:
 
 ```markdown
-| 原问题 | 当前位置 | 状态 | 下一步动作 |
-|---|---|---|---|
+| Finding ID | 原问题 | 当前位置 | 状态 | 下一步动作 |
+|---|---|---|---|---|
 ```
 
 ## Review Lenses
@@ -137,7 +152,7 @@ Always check for:
 - missing assumptions, qualifiers, limitations, or uncertainty that materially affect interpretation
 - citation/reference mismatch or citation used to support a claim it does not actually establish
 
-When a finding concerns claim strength, use `references/claim-strength-calibration.md` to propose a calibrated rewrite instead of merely saying the claim is "too strong."
+When a finding concerns claim strength, use `references/claim-strength-calibration.md` to identify an evidence-appropriate wording level and minimal phrase options. Do not draft a paste-ready replacement sentence unless the user explicitly requests polishing.
 
 ## Severity And Certainty Classification
 
@@ -170,9 +185,9 @@ When searching, protect manuscript privacy by using anonymized queries (do not u
 ### Cross-Validation Rule
 When a review conclusion depends on external academic consensus, cross-check multiple authoritative (Tier 1/2) sources whenever feasible. If evidence remains uncertain, label the issue as "requires verification" rather than asserting that the manuscript is incorrect.
 
-## Editorial Review
+## Text Quality Review
 
-Editorial review is secondary. Include issues that affect meaning, technical clarity, or professionalism:
+Read `references/text-quality-audit.md` for every review. Include observable issues that affect meaning, technical clarity, authorial consistency, or professionalism:
 
 - ambiguous phrasing that changes interpretation
 - inconsistent terminology
@@ -181,8 +196,22 @@ Editorial review is secondary. Include issues that affect meaning, technical cla
 - malformed equation-adjacent prose
 - broken references, duplicated punctuation, malformed titles, or obvious citation-format glitches
 - high-confidence grammar, spelling, or capitalization issues
+- sustained register, person, tense, or terminology drift
+- redundant restatement, template residue, chatbot framing, or unfilled placeholders
 
-Avoid subjective line editing unless the user requests exhaustive proofreading.
+Avoid subjective line editing, word blacklists, or style fingerprinting. Do not force variation for its own sake.
+
+## Authorial Polishing
+
+Use polishing only when the user explicitly requests a finding-level edit, paragraph/section polish, revision pass, or full-manuscript polish.
+
+1. Read `references/authorial-polishing.md`.
+2. Build the author-style baseline and immutable content ledger before editing.
+3. For an explicit full-manuscript request, read `references/external-polishing-routing.md`; check only local Skill availability and ask once before optional enhancement.
+4. Generate a new revision file and companion report. Never overwrite the source manuscript.
+5. Re-run scientific, terminology, and claim-boundary checks on the revised content.
+
+Nature Polishing may provide constrained academic-expression candidates when installed and authorized. Humanizer variants may only provide audit candidates; they must not control full rewrites, output AI scores, or optimize perplexity/burstiness.
 
 ## Final Proofing Sweep
 
@@ -192,7 +221,7 @@ Run when useful:
 python3 scripts/proofing_scan.py <path-to-pdf-or-text> --max-hits 80
 ```
 
-Use hits as candidates and spot-check before including them.
+Use hits as candidates and spot-check before including them. Chatbot residue, placeholder, and citation-markup hits are publication-artifact warnings, not authorship judgments.
 
 If code execution is unavailable, manually scan for duplicated punctuation, malformed equation-adjacent prose, product/language capitalization, citation-format glitches, and branch/quad ambiguity patterns such as `arctan(x/y)`.
 
@@ -206,20 +235,31 @@ If no concrete issues are identified, output "未发现明显问题" directly. D
 
 ### Finding Format
 For every identified finding, you MUST include:
-1. **Location** (e.g., section number, page, line number, or equation/figure label).
-2. **Problem** (factual explanation of the issue).
-3. **Why it matters** (impact on manuscript validity or readability).
-4. **Suggested revision** (concrete, actionable remedy).
-5. **Severity** (Critical, Major, Minor, or Writing Suggestion).
-6. **Certainty** (确定错误, 证据不足, 疑似问题, or 需核对/确认).
+1. **Finding ID:** `S-01`, `S-02`, ... for Scientific Review; `T-01`, `T-02`, ... for detailed Text Quality Review.
+2. **Location** (e.g., section number, page, line number, or equation/figure label).
+3. **Problem** (factual explanation of the issue).
+4. **Why it matters** (impact on manuscript validity or readability).
+5. **Revision guidance / 修改指导** (the change objective, constraints to preserve, and concrete edit actions).
+6. **Severity** (Critical, Major, Minor, or Writing Suggestion).
+7. **Certainty** (确定错误, 证据不足, 疑似问题, or 需核对/确认).
 *Note: Only output the Evidence Chain trace path if an issue or discrepancy in the chain is found.*
+
+By default, revision guidance must not contain a paste-ready replacement paragraph. Use structure, operations, evidence-appropriate wording levels, or short phrase alternatives. Generate complete replacement sentences or paragraphs only after the user explicitly requests authorial polishing for a named finding, location, section, or manuscript.
 
 Default Markdown report structure:
 - Concise overall assessment (整体评估)
 - Detailed findings grouped by **Severity** (from Critical down to Minor/Suggestions)
+- Text quality review (文本质量审阅): one-sentence result by default, detailed table only when triggered
 - High-priority fixes (高优先级修改建议)
 - Items needing external verification (需核对/确认事项)
 - Action plan table (修改行动表)
+
+When detailed text-quality reporting is triggered, use:
+
+```markdown
+| Finding ID | 位置 | 文本问题 | 具体证据 | 影响 | 修改方向 |
+|---|---|---|---|---|---|
+```
 
 ### Action Plan Table
 
@@ -233,5 +273,13 @@ End the report with a concise action plan table when concrete fixes exist. Do no
 Use:
 
 - **优先级:** `P0`, `P1`, or `P2`
-- **修改类型:** `主张强度校准`, `变量定义补充`, `表文一致性`, `方法说明补充`, `文献支撑补充`, `结构调整`, `表达澄清`, `格式/引用修正`, or `需外部核查`
+- **修改类型:** `主张强度校准`, `变量定义补充`, `表文一致性`, `方法说明补充`, `文献支撑补充`, `结构调整`, `表达澄清`, `文本清晰度`, `文风一致性`, `冗余压缩`, `作者化润色`, `格式/引用修正`, or `需外部核查`
 - **是否阻塞提交:** `是`, `否`, or `取决于要求`
+
+Prefix the `问题` cell with its finding ID when applicable, for example `[S-01]` or `[T-01]`. Do not use `P0/P1/P2` as finding IDs.
+
+When actionable findings exist, end with one concise next-step example:
+
+```text
+按本文作者文风润色 finding S-01，仅修改相关位置，并保留事实、术语、数据、引用、公式和结论强度。
+```
