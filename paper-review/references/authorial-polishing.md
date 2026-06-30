@@ -6,11 +6,11 @@ Use this reference only when the user explicitly requests a local edit, section 
 
 Use the first reliable source available:
 
-1. writing samples the user explicitly identifies as their own preferred style
-2. stable, unflagged passages from the manuscript
-3. a neutral academic register appropriate to the language, paper type, and section
+1. a **confirmed authorial baseline** from writing samples the user explicitly identifies as their own preferred style
+2. a **manuscript-consistent baseline** from stable, unflagged passages in the manuscript
+3. a **neutral academic baseline** appropriate to the language, paper type, and section
 
-If the manuscript is too mixed to infer a reliable baseline, state that limitation and ask the user to identify representative passages before a major rewrite. Match style, not the sample's facts or claims.
+Only the first source justifies calling the result a match to the author's personal voice. The second supports manuscript consistency, not verified authorship. If the manuscript is too mixed or uniformly generic, state that limitation and ask the user to identify representative passages before a major rewrite. Match style, not the sample's facts or claims.
 
 ## Immutable Content Ledger
 
@@ -51,11 +51,14 @@ Do not perform a single-pass whole-document rewrite.
 
 ## File And Format Policy
 
-- Markdown, LaTeX, TXT, and DOCX: create a new file under `paper-revisions/`
+- Markdown, LaTeX, and TXT: create a new editable file under `paper-revisions/`
+- DOCX: create a new DOCX only when document-editing and render-verification tools are available
 - use `<source-stem>-polished-YYYY-MM-DD-HHMMSS.<ext>` for the manuscript
 - use `<source-stem>-polish-report-YYYY-MM-DD-HHMMSS.md` for the companion report
 - never overwrite the source manuscript
-- use available document tools for DOCX and preserve document structure as far as those tools allow
+- for DOCX, preserve and visually verify headings, tables, equations, notes, citations, and pagination-sensitive elements as far as the tools allow
+- when DOCX editing or render verification is unavailable, do not claim a preserved DOCX output; provide structured DOCX-ready revision text or request Markdown/LaTeX/TXT instead
+- disclose that comments, tracked changes, text boxes, field codes, complex tables, and advanced styles may require manual Word verification
 - PDF is review-only; request an editable source or return structured revision guidance
 
 ## Companion Report
@@ -65,6 +68,7 @@ Include:
 - source and output paths
 - polish scope and style-baseline source
 - immutable-content checks performed
+- an invariant verification table covering claims, terminology, numbers/units, citations, equations, and labels, with each category marked `Passed`, `Changed with author approval`, or `Needs verification`
 - sections or findings changed
 - unresolved ambiguities or content requiring author confirmation
 - confirmation that the source file was not modified

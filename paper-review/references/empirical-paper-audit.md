@@ -29,6 +29,12 @@ Check whether the model can answer the research question:
 - causal wording is supported by design; otherwise recommend associational wording
 - sample size, cluster count, missing data, and selection criteria are sufficient for the stated claims
 - model assumptions and identification boundaries are acknowledged
+- effect sizes and confidence intervals are reported when they are needed to interpret practical or scientific importance
+- statistical assumptions, diagnostics, and multiple-testing adjustments are addressed when applicable
+- missing-data handling is stated and does not silently change the estimand or sample
+- sample-size or power reasoning is proportionate to the design and claim
+- machine-learning evaluations prevent train/validation/test leakage and separate tuning from final evaluation
+- human- or animal-subject studies report ethics approval and consent when required
 
 ## Robustness And Extension Audit
 

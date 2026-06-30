@@ -22,6 +22,16 @@ Use this reference only for substantive English manuscript prose.
 - check whether transitions express a real logical relation rather than decorate every sentence
 - identify repeated sentence openings or structures only when they make the prose mechanical or obscure emphasis
 
+### Grammar, Mechanics, And Scholarly Conventions
+
+- check subject-verb agreement, articles and countability, pronoun-antecedent agreement, and complete clause structure when errors affect meaning or recur
+- check prepositions and disciplinary collocations without replacing precise technical terms merely for variety
+- preserve parallel structure in hypotheses, research questions, lists, and method steps
+- use one US or UK spelling convention consistently unless a venue or quoted source requires otherwise
+- require first-use abbreviation expansion unless the abbreviation is universally conventional for the intended audience
+- check punctuation, capitalization, hyphenation, number/unit spacing, and citation placement for internal and venue consistency
+- in literature reviews, flag a paper-by-paper list when the paragraph does not synthesize comparison, disagreement, trend, taxonomy, or the present research gap
+
 ### Candidate Template Patterns
 
 Candidates include vague `-ing` tails, significance inflation, promotional adjectives, synonym cycling, generic conclusions, chatbot framing, and fill-in-the-blank residue. Do not ban individual words, em dashes, Oxford commas, passive voice, or regular sentence lengths. Judge each candidate in context.

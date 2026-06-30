@@ -5,7 +5,18 @@ from __future__ import annotations
 
 import argparse
 import re
+import sys
 from pathlib import Path
+
+
+MAX_DOCX_XML_BYTES = 50 * 1024 * 1024
+CLUSTERED_CANDIDATE_RULES = {
+    "ZH_OVERCLAIM_CAUSAL",
+    "ZH_OVERCLAIM_STABILITY",
+    "ZH_OVERCLAIM_SCOPE",
+    "CHATBOT_LEAK_EN",
+    "CHATBOT_LEAK_ZH",
+}
 
 
 def _read_pdf_pages(pdf_path: Path) -> list[str]:
@@ -16,12 +27,21 @@ def _read_pdf_pages(pdf_path: Path) -> list[str]:
 
     reader = PdfReader(str(pdf_path))
     pages = []
-    for page in reader.pages:
+    failed_pages = 0
+    for page_number, page in enumerate(reader.pages, start=1):
         try:
             text = page.extract_text() or ""
-        except Exception:
+        except Exception as exc:
             text = ""
+            failed_pages += 1
+            print(
+                f"[WARN] Failed to extract PDF page {page_number}: {exc}",
+                file=sys.stderr,
+            )
         pages.append(re.sub(r"\s+", " ", text).strip())
+    if not any(pages):
+        detail = " extraction failed" if failed_pages else " no extractable text was found"
+        raise SystemExit(f"PDF scan unavailable:{detail}. Provide an OCRed PDF or editable source.")
     return pages
 
 
@@ -33,22 +53,47 @@ def _read_text_as_single_page(path: Path) -> list[str]:
 def _read_docx_as_single_page(path: Path) -> list[str]:
     import zipfile
     import xml.etree.ElementTree as ET
+
     try:
         with zipfile.ZipFile(path) as docx:
-            xml_files = [f for f in docx.namelist() if f.startswith('word/') and f.endswith('.xml')]
-            target_files = [f for f in xml_files if any(p in f for p in ['document', 'header', 'footer', 'footnote', 'endnote'])]
+            target_names = {
+                name
+                for name in docx.namelist()
+                if name == "word/document.xml"
+                or re.fullmatch(
+                    r"word/(?:header\d+|footer\d+|footnotes|endnotes)\.xml", name
+                )
+            }
+            if "word/document.xml" not in target_names:
+                raise SystemExit("DOCX is missing required part word/document.xml.")
+
+            target_infos = [docx.getinfo(name) for name in sorted(target_names)]
+            if sum(info.file_size for info in target_infos) > MAX_DOCX_XML_BYTES:
+                raise SystemExit("DOCX XML content is too large for the lightweight scanner.")
+
             texts = []
-            for xml_file in target_files:
+            for info in target_infos:
                 try:
-                    xml_content = docx.read(xml_file)
+                    xml_content = docx.read(info.filename)
                     root = ET.fromstring(xml_content)
                     for elem in root.iter():
-                        if elem.tag.endswith('}t') and elem.text:
+                        if elem.tag.endswith("}t") and elem.text:
                             texts.append(elem.text)
-                except Exception:
-                    continue
+                except Exception as exc:
+                    if info.filename == "word/document.xml":
+                        raise SystemExit(
+                            f"Failed to parse required DOCX part {info.filename}: {exc}"
+                        ) from exc
+                    print(
+                        f"[WARN] Skipped unreadable DOCX part {info.filename}: {exc}",
+                        file=sys.stderr,
+                    )
             full_text = " ".join(texts)
+            if not full_text.strip():
+                raise SystemExit("DOCX contains no extractable manuscript text.")
             return [re.sub(r"\s+", " ", full_text).strip()]
+    except SystemExit:
+        raise
     except Exception as exc:
         raise SystemExit(f"Failed to read DOCX file: {exc}")
 
@@ -66,16 +111,23 @@ def _find_regex(
     max_hits: int,
 ) -> list[tuple[str, int, str]]:
     hits: list[tuple[str, int, str]] = []
-    seen: set[tuple[str, int, str]] = set()
+    cluster_nearby = rule_id in CLUSTERED_CANDIDATE_RULES
     for page_number, page_text in enumerate(pages, start=1):
         if not page_text:
             continue
+        last_reported_end: int | None = None
         for match in pattern.finditer(page_text):
-            hit = (rule_id, page_number, _snip(page_text, match.start(), match.end()))
-            if hit in seen:
+            # One nearby semantic cluster is enough to prompt a contextual spot-check.
+            if (
+                cluster_nearby
+                and last_reported_end is not None
+                and match.start() - last_reported_end <= 160
+            ):
                 continue
-            seen.add(hit)
+            hit = (rule_id, page_number, _snip(page_text, match.start(), match.end()))
             hits.append(hit)
+            if cluster_nearby:
+                last_reported_end = match.end()
             if len(hits) >= max_hits:
                 return hits
     return hits
@@ -86,6 +138,9 @@ def main() -> None:
     parser.add_argument("path", type=str, help="PDF, DOCX, or text file")
     parser.add_argument("--max-hits", type=int, default=80, help="Cap total hits across all rules")
     args = parser.parse_args()
+
+    if args.max_hits <= 0:
+        parser.error("--max-hits must be a positive integer")
 
     path = Path(args.path)
     if not path.exists():
@@ -138,6 +193,17 @@ def main() -> None:
             re.compile(
                 r"\bciteturn\d+(?:search|view|fetch)\d+\b|contentReference\[oaicite:[^\]]+\]"
                 r"|\boai_citation\b|\[attached_file:\d+\]|\bgrok_card\b",
+                re.IGNORECASE,
+            ),
+        ),
+        (
+            "AI_TOOL_METADATA",
+            re.compile(r"\battributableIndex\b|:::writing\b", re.IGNORECASE),
+        ),
+        (
+            "AI_TOOL_TRACKING_URL",
+            re.compile(
+                r"\butm_source=(?:chatgpt(?:\.com)?|openai|perplexity(?:\.ai)?|claude|grok)\b",
                 re.IGNORECASE,
             ),
         ),

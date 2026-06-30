@@ -21,7 +21,7 @@ If one or more are available, explain their proposed role and ask once whether t
 Use as a candidate academic-expression pass after the internal content ledger and section plan exist. Constrain the request:
 
 ```text
-Polish only the specified section. Preserve every fact, number, variable, equation, citation, label, terminology entry, and claim boundary supplied below. Match the supplied author-style baseline. Do not add evidence, mechanisms, novelty, examples, or references. Return revised prose and a concise change map.
+Polish only the specified section. Preserve every fact, number, variable, equation, citation, label, terminology entry, and claim boundary supplied below. Match the supplied baseline, which is labeled as confirmed-authorial, manuscript-consistent, or neutral. Do not claim author-voice matching unless the baseline is confirmed-authorial. Do not add evidence, mechanisms, novelty, examples, or references. Return revised prose and a concise change map.
 ```
 
 ### Humanizer Or Humanizer-zh

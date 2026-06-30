@@ -1,6 +1,6 @@
 ---
 name: paper-review
-description: Use when reviewing, proofreading, auditing, or authorially polishing scientific and technical manuscripts in Markdown, DOCX, PDF, LaTeX, or plain text; checking research questions, argument logic, variables, methods, equations, evidence, figures, tables, appendices, citations, unsupported claims, text clarity, terminology, style consistency, or producing a structured manuscript review or protected revision.
+description: Use when reviewing, proofreading, auditing, or authorially polishing scientific and technical manuscripts in Markdown, DOCX, PDF, LaTeX, or plain text; checking research logic, methods, evidence, citations, AI-trace candidates, template-like or generated-text artifacts, text clarity, terminology, style consistency, or producing a structured review or protected revision.
 ---
 
 # Paper Review
@@ -10,7 +10,7 @@ description: Use when reviewing, proofreading, auditing, or authorially polishin
 Produce a concrete manuscript review across two parallel quality tracks:
 
 1. **Scientific Review:** research questions, methods, evidence, variables, equations, figures/tables, citations, and conclusion boundaries.
-2. **Text Quality Review:** clarity, terminology, redundancy, paragraph flow, register, and authorial-style consistency.
+2. **Text Quality Review:** clarity, terminology, redundancy, paragraph flow, register, and manuscript-style consistency.
 
 Default to a Markdown review report unless the user requests another output format. Scientific validity remains the first priority; text-quality review must not weaken or replace it.
 
@@ -19,7 +19,7 @@ Default to a Markdown review report unless the user requests another output form
 1. Read the full manuscript or all provided manuscript material before writing findings.
 2. Preserve equations, symbols, citation keys, table/figure labels, and quoted snippets exactly when needed for accuracy.
 3. Match the user's requested language; default to Simplified Chinese (简体中文) unless specified otherwise.
-4. Create a new timestamped review file at `paper-reviews/review-YYYY-MM-DD-HHMMSS.md` when writing to disk, unless the user gives another path.
+4. Create a new timestamped review file at `paper-reviews/review-YYYY-MM-DD-HHMMSS.md` when writing to disk, unless the user gives another path. Treat `paper-reviews/` and `paper-revisions/` as user-facing deliverable directories. Do not place plans, scratch notes, logs, or temporary files in them.
 5. Do not modify the manuscript unless the user explicitly requests edits or a revision pass.
 6. Do not require a fixed review template. Use the structure that best exposes actionable issues.
 7. If the manuscript is incomplete, review what is available and state which checks are limited by missing files.
@@ -52,7 +52,7 @@ Use this map to test whether the paper's claims, method, evidence, and wording a
 Apply both tracks during every review, including recheck mode unless the user explicitly narrows the scope:
 
 - **Scientific Review:** apply the Core Manuscript Audit Protocol and all relevant manuscript-type enhancement modules.
-- **Text Quality Review:** read `references/text-quality-audit.md` and run its lightweight audit after the scientific review. Load the Chinese and/or English reference only when its routing rules require it.
+- **Text Quality Review:** read `references/text-quality-audit.md` and run its language-agnostic lightweight audit, including the default lightweight AI-trace candidate scan, after the scientific review. Read `references/ai-trace-candidate-audit.md` when a material candidate appears or the user explicitly requests detailed AI-trace review. Load the Chinese and/or English deep-audit reference only after detailed reporting is triggered or the user explicitly requests language-focused review.
 
 Keep the tracks distinct. A vague causal claim belongs in Scientific Review even if the sentence is also awkward. A sustained register shift or redundant paragraph belongs in Text Quality Review unless it changes scientific meaning.
 
@@ -87,7 +87,7 @@ Interpret "variables" broadly:
 6. Read `references/claim-strength-calibration.md` when the manuscript contains causal, significance, robustness, novelty, policy, or contribution claims whose wording may be stronger than the evidence.
 7. Audit the highest-risk content first: research question, method, variables/symbols, evidence, results, equations, figures/tables, appendices, and citations.
 8. Re-check the scientific findings and classify them by severity and certainty.
-9. Read `references/text-quality-audit.md`, run the lightweight text-quality track, and conditionally load `references/text-quality-zh.md` and/or `references/text-quality-en.md`.
+9. Read `references/text-quality-audit.md` and run the lightweight text-quality track plus its default AI-trace candidate scan. If an AI-trace trigger fires or the user explicitly requests it, read `references/ai-trace-candidate-audit.md` and apply its verification chain. Only after the language detailed-audit trigger fires, or the user requests language-focused review, load `references/text-quality-zh.md` and/or `references/text-quality-en.md`.
 10. Run `scripts/proofing_scan.py` when code execution is available and the input is PDF, DOCX, Markdown, or text-like; otherwise do the manual proofing scan below.
 11. Spot-check all script and style candidates in context before reporting them.
 12. Write the review report with scientific findings prioritized and a separate text-quality section.
@@ -99,8 +99,8 @@ Use this mode when the user asks to recheck, review a revised draft, compare aga
 In recheck mode:
 
 1. Read the prior review and the current manuscript materials.
-2. Preserve prior finding IDs when available and map findings to their current manuscript locations, accounting for section or wording changes.
-3. Classify each prior finding as:
+2. Preserve prior finding IDs when available and map findings to their current manuscript locations, accounting for section or wording changes. Do not replace a mapped prior ID with `D-*` or another new namespace.
+3. Classify each prior finding with one exact status token:
    - **Resolved:** the issue is fixed.
    - **Still Open:** the issue remains materially unchanged.
    - **Downgraded:** the issue remains but has been narrowed, qualified, or partially addressed.
@@ -109,8 +109,10 @@ In recheck mode:
    - **Needs External Verification:** the status depends on data, literature, code, or context not available in the manuscript.
 4. Do not simply repeat the old review. Focus on status changes, remaining blockers, and new issues.
 5. Include next action for each still-open, downgraded, upgraded, new, or verification-needed item.
+6. Assign a new `S-*` or `T-*` ID only to a genuinely new issue, continuing after the highest existing ID in that track.
+7. Include every unresolved delta item in the Action Plan Table and keep its mapped finding ID visible.
 
-Use a compact status matrix when helpful:
+The status matrix is mandatory and must include every prior finding plus every new finding. Use the exact English status tokens above in the `状态` column; a Chinese explanation may follow in parentheses.
 
 ```markdown
 | Finding ID | 原问题 | 当前位置 | 状态 | 下一步动作 |
@@ -135,6 +137,21 @@ For each manuscript type, check specific methodological validity dimensions (if 
 - **Theoretical or mathematical papers**: Check definitions, assumptions, notation, boundary conditions, theorem/proposition statements, proof steps, dimensions, signs, branches, and symbol drift.
 - **Systems or technical papers**: Check task framing, baseline fairness, evaluation metrics, implementation ambiguity, reproducibility, ablations, external validity, and claim-to-result alignment.
 - **Review or conceptual papers**: Check taxonomy logic, concept boundaries, source representativeness, citation support, and whether synthesis goes beyond summary.
+
+## Common Manuscript Failure Modes
+
+Check these cross-disciplinary failure modes when applicable. Treat venue-specific requirements as `Needs External Verification` unless the user provides the guideline or authorizes a lookup.
+
+- **Title, abstract, and keywords:** describe the same research question, method, evidence, population/system, and bounded conclusion as the main text.
+- **Introduction:** distinguishes context, unresolved gap, research objective/question, and contribution without inflating novelty.
+- **Related work or literature review:** synthesizes comparison, disagreement, trend, taxonomy, and the current gap instead of becoming a paper-by-paper inventory.
+- **Methods or materials:** provides data or material provenance, inclusion/exclusion rules, preprocessing, procedural detail, and settings sufficient for evaluation or reproduction.
+- **Ethics and governance:** includes approval, consent, conflicts, funding, data/code availability, or other required declarations when the study or venue requires them.
+- **Results:** Results reports observation before interpretation and does not hide null, mixed, boundary, or uncertainty information relevant to the main claim.
+- **Discussion:** Discussion distinguishes findings from interpretation, alternative explanations, prior literature, limitations, and implications.
+- **Limitations:** identifies concrete threats and affected claim boundaries rather than using generic caveats contradicted elsewhere.
+- **Conclusion:** answers the research question without introducing new evidence, mechanisms, populations, or stronger claims.
+- **References and declarations:** every material citation supports the adjacent claim; cited and listed sources reconcile; required declarations are present when applicable.
 
 ## Technical And Evidence Audit
 
@@ -172,13 +189,13 @@ For each finding, you must determine both its severity and certainty:
 
 ## External Research Policy
 
-Do not perform external web or literature searches by default. Only perform searches when explicitly authorized by the user, when a finding cannot be assessed without external knowledge, or when the manuscript explicitly requests fact validation.
+Do not perform external web or literature searches by default. Do not search until the user explicitly authorizes it. If a finding cannot be assessed without external knowledge, label it `Needs External Verification`, explain what must be checked, and ask for permission before searching.
 
 When searching, protect manuscript privacy by using anonymized queries (do not upload the title, author names, or sensitive draft text).
 
 ### Source Credibility Hierarchy
-- **Tier 1 (Authoritative)**: Original cited papers, peer-reviewed journals/conferences (e.g., ACM/IEEE, Nature, MISQ, AER), official standards, standard textbooks, official documentation, academic databases (OpenAlex, PubMed, arXiv).
-- **Tier 2 (Supporting)**: University lecture notes, technical manuals, high-quality reviews, preprints.
+- **Tier 1 (Authoritative)**: Peer-reviewed original studies and reviews, official standards, standard textbooks, official statistics, regulatory or institutional primary sources, and official technical documentation.
+- **Tier 2 (Supporting or discovery)**: Reputable preprints (including arXiv), university lecture notes, technical manuals, and academic indexes or databases such as OpenAlex and PubMed. Index records help locate sources but are not evidence by themselves.
 - **Tier 3 (Non-authoritative)**: General forums (StackOverflow, Reddit), commercial/marketing blogs, AI summaries without sources.
 *Rule: Tier 3 sources may only serve as search leads or prompts to check further, but MUST NEVER be cited as academic evidence, consensus, or proof of error.*
 
@@ -187,7 +204,7 @@ When a review conclusion depends on external academic consensus, cross-check mul
 
 ## Text Quality Review
 
-Read `references/text-quality-audit.md` for every review. Include observable issues that affect meaning, technical clarity, authorial consistency, or professionalism:
+Read `references/text-quality-audit.md` for every review. Include observable issues that affect meaning, technical clarity, manuscript-level style consistency, or professionalism:
 
 - ambiguous phrasing that changes interpretation
 - inconsistent terminology
@@ -201,12 +218,14 @@ Read `references/text-quality-audit.md` for every review. Include observable iss
 
 Avoid subjective line editing, word blacklists, or style fingerprinting. Do not force variation for its own sake.
 
+Treat AI-trace review as a text-quality submodule, not a third review track. Surface patterns are candidates, not proof of authorship. Trace material candidates to specificity, evidence, citations, terminology, and section fit; report the underlying problem instead of claiming that text is AI-generated.
+
 ## Authorial Polishing
 
 Use polishing only when the user explicitly requests a finding-level edit, paragraph/section polish, revision pass, or full-manuscript polish.
 
 1. Read `references/authorial-polishing.md`.
-2. Build the author-style baseline and immutable content ledger before editing.
+2. Build the confirmed authorial, manuscript-consistent, or neutral style baseline defined by the reference, then build the immutable content ledger before editing. Do not call an inferred manuscript baseline the author's personal voice.
 3. For an explicit full-manuscript request, read `references/external-polishing-routing.md`; check only local Skill availability and ask once before optional enhancement.
 4. Generate a new revision file and companion report. Never overwrite the source manuscript.
 5. Re-run scientific, terminology, and claim-boundary checks on the revised content.
@@ -234,7 +253,7 @@ You must NOT output low-value, vague suggestions (e.g., "增强创新性", "扩�
 If no concrete issues are identified, output "未发现明显问题" directly. Do not invent minor issues just to fill space.
 
 ### Finding Format
-For every identified finding, you MUST include:
+For every scientific finding and every detailed text-quality finding, you MUST include:
 1. **Finding ID:** `S-01`, `S-02`, ... for Scientific Review; `T-01`, `T-02`, ... for detailed Text Quality Review.
 2. **Location** (e.g., section number, page, line number, or equation/figure label).
 3. **Problem** (factual explanation of the issue).
@@ -244,12 +263,15 @@ For every identified finding, you MUST include:
 7. **Certainty** (确定错误, 证据不足, 疑似问题, or 需核对/确认).
 *Note: Only output the Evidence Chain trace path if an issue or discrepancy in the chain is found.*
 
+An isolated non-material text observation is not a detailed finding. Report it in one concise sentence without a `T-*` ID, detailed table, or action-plan row. Reserve `T-*` IDs for text-quality issues that satisfy the detailed-audit trigger in `references/text-quality-audit.md`.
+
 By default, revision guidance must not contain a paste-ready replacement paragraph. Use structure, operations, evidence-appropriate wording levels, or short phrase alternatives. Generate complete replacement sentences or paragraphs only after the user explicitly requests authorial polishing for a named finding, location, section, or manuscript.
 
 Default Markdown report structure:
 - Concise overall assessment (整体评估)
 - Detailed findings grouped by **Severity** (from Critical down to Minor/Suggestions)
 - Text quality review (文本质量审阅): one-sentence result by default, detailed table only when triggered
+- AI-trace candidate audit (AI 痕迹候选审阅): one-sentence result by default; detailed candidate matrix only when explicitly requested or materially triggered
 - High-priority fixes (高优先级修改建议)
 - Items needing external verification (需核对/确认事项)
 - Action plan table (修改行动表)
@@ -257,8 +279,8 @@ Default Markdown report structure:
 When detailed text-quality reporting is triggered, use:
 
 ```markdown
-| Finding ID | 位置 | 文本问题 | 具体证据 | 影响 | 修改方向 |
-|---|---|---|---|---|---|
+| Finding ID | 位置 | 严重程度 | 判断确定性 | 文本问题 | 具体证据 | 影响 | 修改方向 |
+|---|---|---|---|---|---|---|---|
 ```
 
 ### Action Plan Table
