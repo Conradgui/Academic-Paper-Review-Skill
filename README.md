@@ -417,8 +417,8 @@ _project-records/             # 计划、审计、执行记录和评测汇总
 
 ## 参考与启发
 
+科学性审查基于Open AI旗下Prism平台“审阅论文”功能以及各开源项目的公开思路进行优化迭代。
 文本质量和受保护润色流程参考了以下开源项目的公开思路，并针对科研论文场景独立重写：
-
 - [Yuan1z0825/nature-skills](https://github.com/Yuan1z0825/nature-skills)：论证优先、术语约束、章节化润色和局部修订。
 - [blader/humanizer](https://github.com/blader/humanizer)：模板化表达诊断和写作样本校准。
 - [Aboudjem/humanizer-skill](https://github.com/Aboudjem/humanizer-skill)：检测、改写和复核的分阶段流程。
